@@ -1,4 +1,4 @@
-import cv2
+"""import cv2
 def TiklamaOlayi(olay, x, y, flags, param):
     if olay == cv2.EVENT_LBUTTONDOWN:
         h = hsv[y, x, 0]
@@ -13,4 +13,30 @@ hsv = cv2.cvtColor(goruntu, cv2.COLOR_BGR2HSV)
 cv2.imshow("Goruntu", goruntu)
 cv2.setMouseCallback('Goruntu',TiklamaOlayi)
 cv2.waitKey(0)
-cv2.destroyAllWindows()
+cv2.destroyAllWindows()"""
+
+
+import math
+import os
+import random
+import re
+import sys
+
+#
+# Complete the 'bonAppetit' function below.
+#
+# The function accepts following parameters:
+#  1. INTEGER_ARRAY bill
+#  2. INTEGER k
+#  3. INTEGER b
+#
+
+def sockMerchant(ar):
+    uniqler = list(set(ar))
+    x = 0
+    for i in range(len(uniqler)):
+        x += int(ar.count(uniqler[i])) / 2
+    return x
+
+dizi = [1,2,3,1]
+print(sockMerchant(dizi))
