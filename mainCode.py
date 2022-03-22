@@ -1,6 +1,7 @@
 import cv2
 import random
 import os.path
+import matplotlib.pyplot as plt
 
 def euler_number(a):
     contours, hierarchy = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
@@ -62,6 +63,8 @@ def vucutBul(resim, orijinal):
     blur = cv2.blur(sb,(xBlur,yBlur))
     sb = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY)[1]
     hsv = cv2.cvtColor(sb, cv2.COLOR_BGR2HSV)
+    plt.imshow(sb, cmap='gray')
+    plt.show()
     for i in range(0, y):
         for j in range(0, x):
             v = hsv[i, j, 2]
@@ -225,9 +228,9 @@ def isleVeKaydet(dosyaYolu):
     r2 = cv2.imread(dosyaYolu)
     vr, orijinal = vucutBul(r1, r2)
     ar = akcigerBul(vr, orijinal)
-    randomSayi = random.randint(1, 10000000)
+    """randomSayi = random.randint(1, 10000000)
     dosyaYolu = "islenmisRontgenler/" + dosyaYolu[18:len(dosyaYolu) - 4] + "-" + str(randomSayi) + ".jpg"
-    cv2.imwrite(dosyaYolu, ar)
+    cv2.imwrite(dosyaYolu, ar)"""
 
 resimler = os.listdir("orijinalRontgenler")
 for resim in resimler:

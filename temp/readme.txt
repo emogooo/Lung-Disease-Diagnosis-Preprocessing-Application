@@ -1,2 +1,2 @@
-Temp klasörünü silmeyin.
-Do not delete temp folder.
+Temp klasörünü silmeyin, readme dosyasını silin.
+Do not delete temp folder but delete readme file.

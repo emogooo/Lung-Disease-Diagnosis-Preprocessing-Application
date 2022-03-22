@@ -1,2 +1,2 @@
-orijinalRontgenler klasörünü silmeyin.
-Do not delete orijinalRontgenler folder.
+orijinalRontgenler klasörünü silmeyin, readme dosyasını silin.
+Do not delete orijinalRontgenler folder but delete readme file.
