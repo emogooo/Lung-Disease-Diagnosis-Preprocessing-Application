@@ -1,7 +1,6 @@
 import cv2
 import random
 import os.path
-import matplotlib.pyplot as plt
 
 def euler_number(a):
     contours, hierarchy = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
@@ -226,11 +225,9 @@ def isleVeKaydet(dosyaYolu):
     r2 = cv2.imread(dosyaYolu)
     vr, orijinal = vucutBul(r1, r2)
     ar = akcigerBul(vr, orijinal)
-    plt.imshow(ar, cmap='gray')
-    plt.show()
-    """randomSayi = random.randint(1, 10000000)
+    randomSayi = random.randint(1, 10000000)
     dosyaYolu = "islenmisRontgenler/" + dosyaYolu[18:len(dosyaYolu) - 4] + "-" + str(randomSayi) + ".jpg"
-    cv2.imwrite(dosyaYolu, ar)"""
+    cv2.imwrite(dosyaYolu, ar)
 
 resimler = os.listdir("orijinalRontgenler")
 for resim in resimler:
