@@ -1,6 +1,7 @@
 import cv2
 import random
 import os.path
+import matplotlib.pyplot as plt
 
 def euler_number(a):
     contours, hierarchy = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
@@ -46,11 +47,11 @@ def siyahBeyazGonder(resim):
 
 def vucutBul(resim, orijinal):
     y, x, _ = resim.shape
-    xBlur = int(x / 120)
-    yBlur = int(y / 90)
     solX = x
     sagX = altY = 0
     ustY = y
+    xBlur = int(x / 30)
+    yBlur = int(y / 15)
     sbr = cv2.threshold(resim, 240, 255, cv2.THRESH_BINARY)[1]
     hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
     for i in range(0, y):
@@ -58,11 +59,53 @@ def vucutBul(resim, orijinal):
             v = hsv[i, j, 2]
             if int(v) == 255:
                 resim[i, j] = (0, 0, 0)
-    # Buraya kadar olan kısım filmdeki beyaz renkli yazı ve sembolleri siler.
+    sb = cv2.threshold(resim, 100, 255, cv2.THRESH_BINARY)[1]
+    blur = cv2.blur(sb,(xBlur,yBlur))
+    sb = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY)[1]
+    hsv = cv2.cvtColor(sb, cv2.COLOR_BGR2HSV)
+    for i in range(0, y):
+        for j in range(0, x):
+            v = hsv[i, j, 2]
+            if int(v) != 0 and solX >= j:
+                solX = j
+                break
+    for i in range(0, y):
+        for j in range(x-1, solX, -1):
+            v = hsv[i, j, 2]
+            if int(v) != 0 and sagX <= j:
+                sagX = j
+                break
+    for i in range(solX, sagX):
+        for j in range(0, y):
+            v = hsv[j, i, 2]
+            if int(v) != 0 and ustY >= j:
+                ustY = j
+                break
+    for i in range(solX, sagX):
+        for j in range(y-1, ustY, -1):
+            v = hsv[j, i, 2]
+            if int(v) != 0 and altY <= j:
+                altY = j
+                break
+    resim = orijinal[ustY: altY, solX: sagX]
+    cv2.imwrite("temp/p2.jpg", resim)
+    y, x, _ = resim.shape
+    solX = x
+    sagX = altY = 0
+    ustY = y
+    xBlur = int(x / 120)
+    yBlur = int(y / 90)
+    sbr = cv2.threshold(resim, 240, 255, cv2.THRESH_BINARY)[1]
+    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
+    for i in range(0, y):
+        for j in range(0, x):
+            v = hsv[i, j, 2]
+            if int(v) == 255:
+                resim[i, j] = (0, 0, 0)
     blur = cv2.blur(resim, (xBlur, yBlur))
     sbr = siyahBeyazGonder(blur)
-    cv2.imwrite("gecici.jpg", sbr)
-    sbr = cv2.imread("gecici.jpg")
+    cv2.imwrite("temp/gecici.jpg", sbr)
+    sbr = cv2.imread("temp/gecici.jpg")
     hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
     for i in range(0, y):
         for j in range(0, x):
@@ -88,9 +131,9 @@ def vucutBul(resim, orijinal):
             if int(v) == 255 and altY <= j:
                 altY = j
                 break
-
     ir1 = sbr[ustY: altY, solX: sagX]
-    ir2 = orijinal[ustY: altY, solX: sagX]
+    ir2 = cv2.imread("temp/p2.jpg")
+    ir2 = ir2[ustY: altY, solX: sagX]
     return ir1, ir2
 
 def akcigerBul(resim, orijinal):
@@ -183,9 +226,11 @@ def isleVeKaydet(dosyaYolu):
     r2 = cv2.imread(dosyaYolu)
     vr, orijinal = vucutBul(r1, r2)
     ar = akcigerBul(vr, orijinal)
-    randomSayi = random.randint(1, 10000000)
+    plt.imshow(ar, cmap='gray')
+    plt.show()
+    """randomSayi = random.randint(1, 10000000)
     dosyaYolu = "islenmisRontgenler/" + dosyaYolu[18:len(dosyaYolu) - 4] + "-" + str(randomSayi) + ".jpg"
-    cv2.imwrite(dosyaYolu, ar)
+    cv2.imwrite(dosyaYolu, ar)"""
 
 resimler = os.listdir("orijinalRontgenler")
 for resim in resimler:
