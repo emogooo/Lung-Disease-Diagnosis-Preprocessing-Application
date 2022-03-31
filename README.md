@@ -19,7 +19,7 @@ Algoritmaya verilen röntgen filmi:![d](https://user-images.githubusercontent.co
 ![a](https://user-images.githubusercontent.com/58745898/158310148-6b933059-2b21-450f-8af2-fcaba122d0da.jpg)
 7.Elde edilen görüntü blurlanır.
 ![a](https://user-images.githubusercontent.com/58745898/158310363-6233b803-7aee-4451-95af-0bf714084bb9.jpg)
-8.Blurlanmış görüntü siyah beyaza çevirilerek göğüs kafesini ortaya çıkarılır.
+8.Blurlanmış görüntü siyah beyaza çevirilerek göğüs kafesi ortaya çıkarılır.
 ![a](https://user-images.githubusercontent.com/58745898/158310655-a8acfd73-15fc-4f3d-a1f7-13bf40d1c119.jpg)
 9.Görüntünün en sol, en sağ, en üst ve en altında bulunan siyah pixeller tespit edilerek, göğüs kafesinin çerçevesi belirlenir.
 ![a](https://user-images.githubusercontent.com/58745898/158311151-279416cb-d603-4041-bdcb-192be0719e2f.jpg)
