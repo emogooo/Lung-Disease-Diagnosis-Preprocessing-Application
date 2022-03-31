@@ -1,2 +1,2 @@
-islenmisRontgenler klasörünü silmeyin, readme dosyasını silin.
-Do not delete islenmisRontgenler folder but delete readme file.
+islenmisRontgenler klasörünü silmeyin.
+Do not delete islenmisRontgenler folder.

@@ -1,7 +1,7 @@
 import cv2
 import random
 import os.path
-import matplotlib.pyplot as plt
+import copy
 
 def euler_number(a):
     contours, hierarchy = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
@@ -63,8 +63,6 @@ def vucutBul(resim, orijinal):
     blur = cv2.blur(sb,(xBlur,yBlur))
     sb = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY)[1]
     hsv = cv2.cvtColor(sb, cv2.COLOR_BGR2HSV)
-    plt.imshow(sb, cmap='gray')
-    plt.show()
     for i in range(0, y):
         for j in range(0, x):
             v = hsv[i, j, 2]
@@ -90,7 +88,8 @@ def vucutBul(resim, orijinal):
                 altY = j
                 break
     resim = orijinal[ustY: altY, solX: sagX]
-    cv2.imwrite("temp/p2.jpg", resim)
+    #cv2.imwrite("temp/p2.jpg", resim)
+    ir2 = copy.copy(resim)
     y, x, _ = resim.shape
     solX = x
     sagX = altY = 0
@@ -106,8 +105,7 @@ def vucutBul(resim, orijinal):
                 resim[i, j] = (0, 0, 0)
     blur = cv2.blur(resim, (xBlur, yBlur))
     sbr = siyahBeyazGonder(blur)
-    cv2.imwrite("temp/gecici.jpg", sbr)
-    sbr = cv2.imread("temp/gecici.jpg")
+    sbr = cv2.cvtColor(sbr,cv2.COLOR_GRAY2BGR)
     hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
     for i in range(0, y):
         for j in range(0, x):
@@ -134,7 +132,7 @@ def vucutBul(resim, orijinal):
                 altY = j
                 break
     ir1 = sbr[ustY: altY, solX: sagX]
-    ir2 = cv2.imread("temp/p2.jpg")
+    #ir2 = cv2.imread("temp/p2.jpg")
     ir2 = ir2[ustY: altY, solX: sagX]
     return ir1, ir2
 
@@ -223,16 +221,18 @@ def akcigerBul(resim, orijinal):
     kr = orijinal[ustY: altY, solX: sagX]
     return kr
 
-def isleVeKaydet(dosyaYolu):
+def isleVeKaydet(dosyaYolu, uzunluk):
     r1 = cv2.imread(dosyaYolu)
     r2 = cv2.imread(dosyaYolu)
     vr, orijinal = vucutBul(r1, r2)
     ar = akcigerBul(vr, orijinal)
-    """randomSayi = random.randint(1, 10000000)
-    dosyaYolu = "islenmisRontgenler/" + dosyaYolu[18:len(dosyaYolu) - 4] + "-" + str(randomSayi) + ".jpg"
-    cv2.imwrite(dosyaYolu, ar)"""
+    randomSayi = random.randint(1, 10000000)
+    dosyaYolu = "islenmisRontgenler/" + dosyaYolu[len("islenmisRontgenler/"):len(dosyaYolu) - uzunluk] + "-" + str(randomSayi) + ".jpg"
+    cv2.imwrite(dosyaYolu, ar)
 
 resimler = os.listdir("orijinalRontgenler")
 for resim in resimler:
-    dosyaYolu = "orijinalRontgenler/" + resim
-    isleVeKaydet(dosyaYolu)
+    idx = resim.find(".") + 1
+    if resim[idx:] == "jpg" or resim[idx:] == "jpeg" or resim[idx:] == "png":
+        dosyaYolu = "orijinalRontgenler/" + resim
+        isleVeKaydet(dosyaYolu, len(resim[idx:]) + 1)
