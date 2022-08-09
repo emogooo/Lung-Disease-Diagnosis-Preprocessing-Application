@@ -27,3 +27,24 @@ Algoritmaya verilen röntgen filmi:![d](https://user-images.githubusercontent.co
 ![a](https://user-images.githubusercontent.com/58745898/158311599-b0303496-4b32-46e7-ac5a-103e81cd8721.jpg)
 11.Elde edilen görüntü:
 ![d-9079045](https://user-images.githubusercontent.com/58745898/158310672-3c56a853-088f-4295-a238-c712b75ca318.jpg)
+
+Pseudo Code:
+Başla.
+Resmi yüksek bir eşik değeri (240/255) ile siyah-beyaza çevir. (a)
+Beyaz pixellerin koordinatlarını tut.
+Orijinal resimde bu koordinatlara denk gelen pixelleri siyaha boya. (b)
+Resme blur ((x/30), (y/15)) uygula ve normal bir eşik değeri (127/255) ile siyah-beyaza çevir. (c)
+Dört yöndeki en uzak (yukarı aşağı sağ sol) beyaz pixelleri bul ve bu noktalardan çerçevele.
+Çerçevelenmiş resmi kırp ve yeni resmi oluştur. (d)
+Resmin dışta bulunan siyah pixellerini beyaza boya. (e)
+Resme yüksek oranda blur ((x/5), (y/5)) uygula ve normal bir eşik değeri (127/255) ile siyah-beyaza çevir. (f)
+Yeni resimde mevcut dört yöndeki en uzak (yukarı aşağı sağ sol) siyah pixelleri bul ve bu noktalardan çerçevele. 
+Çerçevenin koordinatlarını orijinal resimden kırparak akciğeri görüntüsünü elde et. (g)
+Bitir.
+
+Açıklamalar:
+Röntgen filmlerinde biyomedikal görüntülerin yanı sıra röntgen numarası, hasta, hastane ve doktor adı gibi bilgiler de bulunmaktadır. Bu bilgilerin röntgen filminden çıkarılması ve akciğerin tespiti yapılırken hata payını artırmaması için ilk siyah-beyaz çevirme işleminde kullanılan threshold değeri normalden büyüktür. 
+Uygulanan ilk blurlama işlemi röntgen filminde bulunan, parazit sayılabilecek aykırı pixellerin giderilmesi içindir.
+Uygulanan ikinci blurlama işlemi akciğerin köşelerinin koordinatlarını saptamak için yüksek tutulmuştur. Bu sayede akciğer harici bir varlığın (genelde çocuklarda görülen karın bölgesinde gaz sıkışması akciğerden daha koyu ve yoğun gözükmektedir) görüntülenmesi engellenmiş olur.
+
+![img](https://user-images.githubusercontent.com/58745898/183700555-40b4a4c8-7634-4e61-b859-77cf65a5073a.jpg)
