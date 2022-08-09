@@ -55,6 +55,13 @@ Yeni resimde mevcut dört yöndeki en uzak (yukarı aşağı sağ sol) siyah pix
 Bitir.
 
 
+Parametreler:
+
+X = Resmin yatay uzunluğu (pixel adedi)
+
+Y = Resmin dikey uzunluğu (pixel adedi)
+
+
 Açıklamalar:
 
 Röntgen filmlerinde biyomedikal görüntülerin yanı sıra röntgen numarası, hasta, hastane ve doktor adı gibi bilgiler de bulunmaktadır. Bu bilgilerin röntgen filminden çıkarılması ve akciğerin tespiti yapılırken hata payını artırmaması için ilk siyah-beyaz çevirme işleminde kullanılan threshold değeri normalden büyüktür. 
