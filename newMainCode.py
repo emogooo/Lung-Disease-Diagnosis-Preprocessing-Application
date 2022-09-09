@@ -1,8 +1,20 @@
 import cv2
 import random
 import os.path
-import copy
 import matplotlib.pyplot as plt
+import numpy as np
+def keskinlestir(resim):
+    resim = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
+    equ = cv2.equalizeHist(resim)
+    sbr = cv2.cvtColor(equ,cv2.COLOR_GRAY2BGR)
+    return sbr
+
+def cercevele(resim):
+    edged = cv2.Canny(resim, 30, 200)
+    contours, hierarchy = cv2.findContours(edged, 
+        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  
+    cv2.drawContours(resim, contours, -1, (0, 255, 0), 3)
+    return resim
 
 def goster(x):
     plt.imshow(x)
@@ -17,10 +29,6 @@ def euler_number(a):
             holes += 1
     eulerNumber = objects - holes
     return eulerNumber
-
-def convert_to_binary_image(image, threshold, maxVal):
-    ret, thresh = cv2.threshold(image, threshold, maxVal, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    return thresh
 
 def siyahBeyazGonder(resim):
     resim = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
@@ -47,8 +55,9 @@ def siyahBeyazGonder(resim):
             min_sum_result4_trans1 += j
 
     threshold_I1 = (float(max_sum_result4_trans1) + float(min_sum_result4_trans1)) / float(m + n)
-    c = convert_to_binary_image(a, threshold_I1 / float(b + 1), b)
-    return c
+    ret, c = cv2.threshold(a, threshold_I1 / float(b + 1), b, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    sbr = cv2.cvtColor(c,cv2.COLOR_GRAY2BGR)
+    return sbr
 
 def vucutBul(resim):
     y, x, _ = resim.shape
@@ -59,60 +68,79 @@ def vucutBul(resim):
     yBlur = int(y / 15)
     orijinal = resim.copy()
     sbr = cv2.threshold(resim, 230, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
     
     for i in range(0, y):
         for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) == 255:
+            if int(sbr[i, j, 2]) == 255:
                 resim[i, j] = (0, 0, 0)
     
     #logo ve yazılar siyaha boyandı
     sb = cv2.threshold(resim, 50, 255, cv2.THRESH_BINARY)[1]
     blur = cv2.blur(sb,(xBlur,yBlur))
     sb = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sb, cv2.COLOR_BGR2HSV)
-    
+
     for i in range(0, y):
         for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) != 0 and solX >= j:
+            if int(sb[i, j, 2]) != 0 and solX >= j:
                 solX = j
                 break
     for i in range(0, y):
         for j in range(x-1, solX, -1):
-            v = hsv[i, j, 2]
-            if int(v) != 0 and sagX <= j:
+            if int(sb[i, j, 2]) != 0 and sagX <= j:
                 sagX = j
                 break
     for i in range(solX, sagX):
         for j in range(0, y):
-            v = hsv[j, i, 2]
-            if int(v) != 0 and ustY >= j:
+            if int(sb[j, i, 2]) != 0 and ustY >= j:
                 ustY = j
                 break
     for i in range(solX, sagX):
         for j in range(y-1, ustY, -1):
-            v = hsv[j, i, 2]
-            if int(v) != 0 and altY <= j:
+            if int(sb[j, i, 2]) != 0 and altY <= j:
                 altY = j
                 break
-    return orijinal[ustY: altY, solX: sagX]
-    #vücut tespiti yapıldı    
+    return orijinal[ustY: altY, solX: sagX]   
 
-def akcigerBul(resim):
-    y, x, _ = resim.shape
-    xBlur = int(x / 500)
-    yBlur = int(y / 500)
-    blur = cv2.blur(resim, (2, 2))
-    sbr = siyahBeyazGonder(blur)
-    sbr = cv2.cvtColor(sbr,cv2.COLOR_GRAY2BGR)
-    goster(sbr)
+def findLung(img):
+    control = False
+    imgY, imgX, _ = img.shape
+    fullLungTemplates = os.listdir('templates/fullLung/')
+    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #Gelen resmi RGB'ye çeviriyor.
+    for templatePath in fullLungTemplates:
+        if control:
+            break
+        template = cv2.imread("templates/fullLung/" + templatePath, 0) #Template'i RGB olarak alıyor.
+        w, h = template.shape[::-1]
+        res = cv2.matchTemplate(imgGray,template,cv2.TM_CCOEFF_NORMED)
+        for threshold in range(99, 80, -1):
+            loc = np.where(res >= float(threshold) / 100)
+            if loc[0] != []:
+                print(threshold)
+                for pt in zip(*loc[::-1]):
+                    cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2)
+                goster(img)
+                control = True
+                break
+
+    """resim = keskinlestir(resim)
+    img_gray = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
+    template = cv2.imread('templates/solUst.png',0)
+    w, h = template.shape[::-1]
+
+    res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
+    threshold = 0.8
+    loc = np.where(res >= threshold)
+
+    for pt in zip(*loc[::-1]):
+        cv2.rectangle(resim, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2)
+
+    #blur = cv2.blur(sbr, (2, 2))
+    #sbr = siyahBeyazGonder(blur)"""
 
 def isleVeKaydet(dosyaYolu, uzunluk):
     r = cv2.imread(dosyaYolu)
     vr = vucutBul(r)
-    akcigerBul(vr)
+    findLung(vr)
     randomSayi = random.randint(1, 10000000)
     dosyaYolu = "islenmisRontgenler/" + dosyaYolu[len("islenmisRontgenler/"):len(dosyaYolu) - uzunluk] + "-" + str(randomSayi) + ".jpg"
     #cv2.imwrite(dosyaYolu, vr)
