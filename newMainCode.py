@@ -3,6 +3,7 @@ import random
 import os.path
 import matplotlib.pyplot as plt
 import numpy as np
+
 def keskinlestir(resim):
     resim = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
     equ = cv2.equalizeHist(resim)
@@ -102,25 +103,29 @@ def vucutBul(resim):
     return orijinal[ustY: altY, solX: sagX]   
 
 def findLung(img):
-    control = False
+    control1 = False
     imgY, imgX, _ = img.shape
     fullLungTemplates = os.listdir('templates/fullLung/')
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #Gelen resmi RGB'ye çeviriyor.
-    for templatePath in fullLungTemplates:
-        if control:
+    for accuracy in range (99, 75, -1):
+        if control1:
             break
-        template = cv2.imread("templates/fullLung/" + templatePath, 0) #Template'i RGB olarak alıyor.
-        w, h = template.shape[::-1]
-        res = cv2.matchTemplate(imgGray,template,cv2.TM_CCOEFF_NORMED)
-        for threshold in range(99, 80, -1):
-            loc = np.where(res >= float(threshold) / 100)
-            if loc[0] != []:
-                print(threshold)
+        for templatePath in fullLungTemplates:
+            template = cv2.imread("templates/fullLung/" + templatePath, 0) #Template'i RGB olarak alıyor.
+            w, h = template.shape[::-1]
+            if w >= imgY or h >= imgX:
+                continue
+            res = cv2.matchTemplate(imgGray,template,cv2.TM_CCOEFF_NORMED)
+            loc = np.where(res >= float(accuracy) / 100)
+            if len(loc[0]) > 0:
+                control1 = True
                 for pt in zip(*loc[::-1]):
                     cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2)
                 goster(img)
-                control = True
                 break
+    
+    if not control1:
+        print("Akciğer bulunamadı.") 
 
     """resim = keskinlestir(resim)
     img_gray = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
