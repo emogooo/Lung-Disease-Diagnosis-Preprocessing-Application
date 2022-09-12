@@ -60,7 +60,7 @@ def siyahBeyazGonder(resim):
     sbr = cv2.cvtColor(c,cv2.COLOR_GRAY2BGR)
     return sbr
 
-def vucutBul(resim):
+def findBody(resim):
     y, x, _ = resim.shape
     solX = x
     sagX = altY = 0
@@ -103,48 +103,52 @@ def vucutBul(resim):
     return orijinal[ustY: altY, solX: sagX]   
 
 def findLung(img):
-    control1 = False
     imgY, imgX, _ = img.shape
     fullLungTemplates = os.listdir('templates/fullLung/')
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #Gelen resmi RGB'ye çeviriyor.
-    for accuracy in range (99, 75, -1):
-        if control1:
-            break
+    for accuracy in range (99, 70, -1):
         for templatePath in fullLungTemplates:
             template = cv2.imread("templates/fullLung/" + templatePath, 0) #Template'i RGB olarak alıyor.
-            w, h = template.shape[::-1]
-            if w >= imgY or h >= imgX:
-                continue
-            res = cv2.matchTemplate(imgGray,template,cv2.TM_CCOEFF_NORMED)
-            loc = np.where(res >= float(accuracy) / 100)
-            if len(loc[0]) > 0:
-                control1 = True
-                for pt in zip(*loc[::-1]):
-                    cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2)
-                goster(img)
-                break
+            templateX, templateY = template.shape[::-1]
+
+            indexOf_ = templatePath.find('_')
+            indexOfX = templatePath.find('x')
+            indexOfDot = templatePath.find('.')
+
+            xDimensionOfOriginalImageOfTemplate = int(templatePath[indexOf_ + 1:indexOfX])
+            yDimensionOfOriginalImageOfTemplate = int(templatePath[indexOfX + 1:indexOfDot])
+
+            xCoefficient = imgX / xDimensionOfOriginalImageOfTemplate
+            yCoefficient = imgY / yDimensionOfOriginalImageOfTemplate
+            
+            newTemplateX = int(templateX * xCoefficient)
+            newTemplateY = int(templateY * yCoefficient)
+
+            for resizeCoefficient in range(20, -21, -1):
+                newX = int(newTemplateX + (newTemplateX * (resizeCoefficient / 100)))
+                newY = int(newTemplateY + (newTemplateY * (resizeCoefficient / 100)))
+
+                if newX >= imgX or newY >= imgY:
+                    print("Template boyutu resim boyutundan büyük.")
+                    continue
+                
+                resizedTemplate = cv2.resize(template, (newX, newY), interpolation = cv2.INTER_AREA)
+                res = cv2.matchTemplate(imgGray,resizedTemplate,cv2.TM_CCOEFF_NORMED)
+                loc = np.where(res >= float(accuracy) / 100)
+                if len(loc[0]) > 0:
+                    startX = min(loc[1])
+                    startY = min(loc[0])  
+                    cv2.rectangle(img, (startX,startY), (startX + newTemplateX, startY + newTemplateY), (0,255,255), 2)
+                    goster(img)
+                    print("%", accuracy," accuracy ile bulundu.")
+                    print(templatePath, " ile bulundu")
+                    return
     
-    if not control1:
-        print("Akciğer bulunamadı.") 
+    print("Akciğer bulunamadı.")
 
-    """resim = keskinlestir(resim)
-    img_gray = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread('templates/solUst.png',0)
-    w, h = template.shape[::-1]
-
-    res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
-    threshold = 0.8
-    loc = np.where(res >= threshold)
-
-    for pt in zip(*loc[::-1]):
-        cv2.rectangle(resim, pt, (pt[0] + w, pt[1] + h), (0,255,255), 2)
-
-    #blur = cv2.blur(sbr, (2, 2))
-    #sbr = siyahBeyazGonder(blur)"""
-
-def isleVeKaydet(dosyaYolu, uzunluk):
+def processAndSave(dosyaYolu, uzunluk):
     r = cv2.imread(dosyaYolu)
-    vr = vucutBul(r)
+    vr = findBody(r)
     findLung(vr)
     randomSayi = random.randint(1, 10000000)
     dosyaYolu = "islenmisRontgenler/" + dosyaYolu[len("islenmisRontgenler/"):len(dosyaYolu) - uzunluk] + "-" + str(randomSayi) + ".jpg"
@@ -155,4 +159,4 @@ for resim in resimler:
     idx = resim.find(".") + 1
     if resim[idx:] == "jpg" or resim[idx:] == "jpeg" or resim[idx:] == "png":
         dosyaYolu = "orijinalRontgenler/" + resim
-        isleVeKaydet(dosyaYolu, len(resim[idx:]) + 1)
+        processAndSave(dosyaYolu, len(resim[idx:]) + 1)

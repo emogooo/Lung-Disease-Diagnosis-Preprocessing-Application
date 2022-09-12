@@ -1,2 +1,2 @@
-a = list([],[])
-print(a)
+for resizeCoefficient in range(10, -11, -1):
+    print(resizeCoefficient)
