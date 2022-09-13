@@ -103,37 +103,60 @@ def findBody(resim):
     return orijinal[ustY: altY, solX: sagX]   
 
 def findLung(img):
-    imgY, imgX, _ = img.shape
-    fullLungTemplates = os.listdir('templates/fullLung/')
-    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #Gelen resmi RGB'ye çeviriyor.
-    for accuracy in range (99, 70, -1):
-        for templatePath in fullLungTemplates:
-            template = cv2.imread("templates/fullLung/" + templatePath, 0) #Template'i RGB olarak alıyor.
+    x = findTemplate(img, "templates/fullLung/", 100, 35)
+    if not x:
+        print("Tam akciğer templateleri ile herhangi bir akciğer tespit edilemedi. 2 aşamalı tespit sistemi devreye giriyor.")
+    else:
+        print("Akciğer bulundu.")
+        return 0
+
+    leftLungFoundControl = findTemplate(img, "templates/leftLung/", 100, 94)
+    if leftLungFoundControl:
+        print("Sol akciğer tespit edildi.")
+        rightLungFoundControl = findTemplate(img, "templates/rightLung/", 100, 94)
+        if rightLungFoundControl:
+            print("Sağ akciğer tespit edildi.")
+            print("Akciğer kesiliyor...")
+            return 0
+        else:
+            print("Sağ akciğer bulunamadı. 4 aşamalı tespit sistemi devreye giriyor.")
+    else:
+        print("Sol akciğer tespit edilemedi, sağ akciğerin tespit çalışması atlanıyor.")
+
+def findTemplate(img, templatesDirectoryPath, topAccuracy = 100, botAccuracy = 94):
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #Gelen resmi RGB'ye çeviriyor.
+    imgX, imgY = imgRGB.shape[::-1]
+    templates = os.listdir(templatesDirectoryPath)
+    for accuracy in range (topAccuracy, botAccuracy, -1):
+        for templateName in templates:
+            template = cv2.imread(templatesDirectoryPath + templateName, 0) #Template'i RGB olarak alıyor.
             templateX, templateY = template.shape[::-1]
 
-            indexOf_ = templatePath.find('_')
-            indexOfX = templatePath.find('x')
-            indexOfDot = templatePath.find('.')
+            indexOf_ = templateName.find('_')
+            indexOfX = templateName.find('x')
+            indexOfDot = templateName.find('.')
 
-            xDimensionOfOriginalImageOfTemplate = int(templatePath[indexOf_ + 1:indexOfX])
-            yDimensionOfOriginalImageOfTemplate = int(templatePath[indexOfX + 1:indexOfDot])
-
+            xDimensionOfOriginalImageOfTemplate = int(templateName[indexOf_ + 1:indexOfX])
+            yDimensionOfOriginalImageOfTemplate = int(templateName[indexOfX + 1:indexOfDot])
+            
             xCoefficient = imgX / xDimensionOfOriginalImageOfTemplate
             yCoefficient = imgY / yDimensionOfOriginalImageOfTemplate
             
-            newTemplateX = int(templateX * xCoefficient)
-            newTemplateY = int(templateY * yCoefficient)
+            skipResize = False
 
-            for resizeCoefficient in range(20, -21, -1):
-                newX = int(newTemplateX + (newTemplateX * (resizeCoefficient / 100)))
-                newY = int(newTemplateY + (newTemplateY * (resizeCoefficient / 100)))
+            if (xCoefficient >= 0.9 and xCoefficient <= 1.1) and (yCoefficient >= 0.9 and yCoefficient <= 1.1):
+                skipResize = True
+            
+            if not skipResize:
+                newTemplateX = int(templateX * xCoefficient)
+                newTemplateY = int(templateY * yCoefficient)
 
-                if newX >= imgX or newY >= imgY:
-                    print("Template boyutu resim boyutundan büyük.")
-                    continue
-                
+                newX = newTemplateX
+                newY = newTemplateY
+
+
                 resizedTemplate = cv2.resize(template, (newX, newY), interpolation = cv2.INTER_AREA)
-                res = cv2.matchTemplate(imgGray,resizedTemplate,cv2.TM_CCOEFF_NORMED)
+                res = cv2.matchTemplate(imgRGB, resizedTemplate, cv2.TM_CCOEFF_NORMED)
                 loc = np.where(res >= float(accuracy) / 100)
                 if len(loc[0]) > 0:
                     startX = min(loc[1])
@@ -141,10 +164,23 @@ def findLung(img):
                     cv2.rectangle(img, (startX,startY), (startX + newTemplateX, startY + newTemplateY), (0,255,255), 2)
                     goster(img)
                     print("%", accuracy," accuracy ile bulundu.")
-                    print(templatePath, " ile bulundu")
-                    return
-    
-    print("Akciğer bulunamadı.")
+                    print(templateName, " ile bulundu")
+                    print("Resize edildi çünkü ", xCoefficient, yCoefficient)
+                    return True
+            else:
+                res = cv2.matchTemplate(imgRGB, template, cv2.TM_CCOEFF_NORMED)
+                loc = np.where(res >= float(accuracy) / 100)
+                if len(loc[0]) > 0:
+                    startX = min(loc[1])
+                    startY = min(loc[0])  
+                    cv2.rectangle(img, (startX,startY), (startX + templateX, startY + templateY), (0,255,255), 2)
+                    goster(img)
+                    print("%", accuracy," accuracy ile bulundu.")
+                    print(templateName, " ile bulundu")
+                    print("Resize edilmedi çünkü ", xCoefficient, yCoefficient)
+                    return True
+
+    return False
 
 def processAndSave(dosyaYolu, uzunluk):
     r = cv2.imread(dosyaYolu)
