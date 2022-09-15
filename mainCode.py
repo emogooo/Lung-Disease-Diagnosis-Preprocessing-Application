@@ -8,57 +8,57 @@ def show(x):
     plt.imshow(x)
     plt.show()
 
-def findBody(resim):
-    y, x, _ = resim.shape
-    solX = x
-    sagX = altY = 0
-    ustY = y
+def findBody(img):
+    y, x, _ = img.shape
+    leftX = x
+    rightX = botY = 0
+    topY = y
     xBlur = int(x / 10)
     yBlur = int(y / 10)
-    orijinal = resim.copy()
-    sbr = cv2.threshold(resim, 240, 255, cv2.THRESH_BINARY)[1]
+    original = img.copy()
+    sbr = cv2.threshold(img, 240, 255, cv2.THRESH_BINARY)[1]
     
     for i in range(0, y):
         for j in range(0, x):
             if int(sbr[i, j, 2]) == 255:
-                resim[i, j] = (0, 0, 0)
+                img[i, j] = (0, 0, 0)
     
     #logo ve yazılar siyaha boyandı
-    sb = cv2.threshold(resim, 50, 255, cv2.THRESH_BINARY)[1]
+    sb = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY)[1]
     blur = cv2.blur(sb,(xBlur,yBlur))
     sb = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)[1]
 
     for i in range(0, y):
         for j in range(0, x):
-            if int(sb[i, j, 2]) != 0 and solX >= j:
-                solX = j
+            if int(sb[i, j, 2]) != 0 and leftX >= j:
+                leftX = j
                 break
     for i in range(0, y):
-        for j in range(x-1, solX, -1):
-            if int(sb[i, j, 2]) != 0 and sagX <= j:
-                sagX = j
+        for j in range(x-1, leftX, -1):
+            if int(sb[i, j, 2]) != 0 and rightX <= j:
+                rightX = j
                 break
-    for i in range(solX, sagX):
+    for i in range(leftX, rightX):
         for j in range(0, y):
-            if int(sb[j, i, 2]) != 0 and ustY >= j:
-                ustY = j
+            if int(sb[j, i, 2]) != 0 and topY >= j:
+                topY = j
                 break
-    for i in range(solX, sagX):
-        for j in range(y-1, ustY, -1):
-            if int(sb[j, i, 2]) != 0 and altY <= j:
-                altY = j
+    for i in range(leftX, rightX):
+        for j in range(y-1, topY, -1):
+            if int(sb[j, i, 2]) != 0 and botY <= j:
+                botY = j
                 break
-    return orijinal[ustY: altY, solX: sagX]   
+    return original[topY: botY, leftX: rightX]   
 
 def findLung(img):
-    lungFoundControl, lungCoordinates = findTemplate(img, "templates/fullLung/", 95)
+    lungFoundControl, lungCoordinates = findTemplate(img, "templates/fullLung/", 75)
     if lungFoundControl:
         lung = img[lungCoordinates[0][1]: lungCoordinates[1][1], lungCoordinates[0][0]: lungCoordinates[1][0]]
         return lung, True
 
-    leftLungFoundControl, leftLungCoordinates = findTemplate(img, "templates/leftLung/", 95)
+    leftLungFoundControl, leftLungCoordinates = findTemplate(img, "templates/leftLung/", 60)
     if leftLungFoundControl:
-        rightLungFoundControl, rightLungCoordinates = findTemplate(img, "templates/rightLung/", 95)
+        rightLungFoundControl, rightLungCoordinates = findTemplate(img, "templates/rightLung/", 60)
         if rightLungFoundControl:
             startX = leftLungCoordinates[0][0]
             startY = min(leftLungCoordinates[0][1], rightLungCoordinates[0][1])
@@ -67,13 +67,13 @@ def findLung(img):
             lung = img[startY: endY, startX: endX]
             return lung, True
 
-    topLeftLungFoundControl, topLeftLungCoordinates = findTemplate(img, "templates/topLeftLung/", 95)
+    topLeftLungFoundControl, topLeftLungCoordinates = findTemplate(img, "templates/topLeftLung/", 50)
     if topLeftLungFoundControl:
-        botLeftLungFoundControl, botLeftLungCoordinates = findTemplate(img, "templates/botLeftLung/", 95)
+        botLeftLungFoundControl, botLeftLungCoordinates = findTemplate(img, "templates/botLeftLung/", 50)
         if botLeftLungFoundControl:
-            topRightLungFoundControl, topRightLungCoordinates = findTemplate(img, "templates/topRightLung/", 95)
+            topRightLungFoundControl, topRightLungCoordinates = findTemplate(img, "templates/topRightLung/", 50)
             if topRightLungFoundControl:
-                 botRightLungFoundControl, botRightLungCoordinates = findTemplate(img, "templates/botRightLung/", 95)
+                 botRightLungFoundControl, botRightLungCoordinates = findTemplate(img, "templates/botRightLung/", 50)
                  if botRightLungFoundControl:
                     startX = min(topLeftLungCoordinates[0][0], botLeftLungCoordinates[0][0])
                     startY = min(topLeftLungCoordinates[0][1], topRightLungCoordinates[0][1])
@@ -124,14 +124,13 @@ def findTemplate(img, templatesDirectoryPath, botAccuracy = 90):
 
     return False, ((0, 0),(0, 0))
 
-def processAndSave(path, length):
+def cropLung(path):
     img = cv2.imread(path)
     body = findBody(img)
     lung, condition = findLung(body)
     if not condition:
         return
-    randomNumber = random.randint(1, 10000000)
-    path = "islenmisRontgenler/" + path[len("islenmisRontgenler/"):len(path) - length] + "-" + str(randomNumber) + ".jpg"
+    path = "islenmisRontgenler" + path[path.rfind('/') : path.rfind('.')] + "_" + str(random.randint(1,10000000)) + path[path.rfind('.') : ]
     cv2.imwrite(path, lung)
 
 imgs = os.listdir("orijinalRontgenler")
@@ -139,4 +138,4 @@ for img in imgs:
     idx = img.find(".") + 1
     if img[idx:] == "jpg" or img[idx:] == "jpeg" or img[idx:] == "png":
         path = "orijinalRontgenler/" + img
-        processAndSave(path, len(img[idx:]) + 1)
+        cropLung(path)
