@@ -1,238 +1,142 @@
 import cv2
 import random
 import os.path
-import copy
+import matplotlib.pyplot as plt
+import numpy as np
 
-def euler_number(a):
-    contours, hierarchy = cv2.findContours(a, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-    objects = len(contours)
-    holes = 0
-    for h in hierarchy[0]:
-        if h[2] == -1:
-            holes += 1
-    eulerNumber = objects - holes
-    return eulerNumber
+def show(x):
+    plt.imshow(x)
+    plt.show()
 
-def convert_to_binary_image(image, threshold, maxVal):
-    ret, thresh = cv2.threshold(image, threshold, maxVal, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    return thresh
-
-def siyahBeyazGonder(resim):
-    resim = cv2.cvtColor(resim, cv2.COLOR_BGR2GRAY)
-    a = cv2.equalizeHist(resim)
-    b = 255
-    result4_trans1 = []
-
-    for j in range(b):
-        result4_trans1.append(euler_number(a))
-
-    max_result4_trans1 = max(result4_trans1)
-    min_result4_trans1 = min(result4_trans1)
-    m = 0
-    n = 0
-    max_sum_result4_trans1 = 0
-    min_sum_result4_trans1 = 0
-
-    for j in range(b):
-        if result4_trans1[j] == max_result4_trans1:
-            m += 1
-            max_sum_result4_trans1 += j
-        elif result4_trans1[j] == min_result4_trans1:
-            n += 1
-            min_sum_result4_trans1 += j
-
-    threshold_I1 = (float(max_sum_result4_trans1) + float(min_sum_result4_trans1)) / float(m + n)
-    c = convert_to_binary_image(a, threshold_I1 / float(b + 1), b)
-    return c
-
-def vucutBul(resim, orijinal):
+def findBody(resim):
     y, x, _ = resim.shape
     solX = x
     sagX = altY = 0
     ustY = y
-    xBlur = int(x / 30)
-    yBlur = int(y / 15)
+    xBlur = int(x / 10)
+    yBlur = int(y / 10)
+    orijinal = resim.copy()
     sbr = cv2.threshold(resim, 240, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
+    
     for i in range(0, y):
         for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) == 255:
+            if int(sbr[i, j, 2]) == 255:
                 resim[i, j] = (0, 0, 0)
-    sb = cv2.threshold(resim, 100, 255, cv2.THRESH_BINARY)[1]
+    
+    #logo ve yazılar siyaha boyandı
+    sb = cv2.threshold(resim, 50, 255, cv2.THRESH_BINARY)[1]
     blur = cv2.blur(sb,(xBlur,yBlur))
-    sb = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sb, cv2.COLOR_BGR2HSV)
+    sb = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)[1]
+
     for i in range(0, y):
         for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) != 0 and solX >= j:
+            if int(sb[i, j, 2]) != 0 and solX >= j:
                 solX = j
                 break
     for i in range(0, y):
         for j in range(x-1, solX, -1):
-            v = hsv[i, j, 2]
-            if int(v) != 0 and sagX <= j:
+            if int(sb[i, j, 2]) != 0 and sagX <= j:
                 sagX = j
                 break
     for i in range(solX, sagX):
         for j in range(0, y):
-            v = hsv[j, i, 2]
-            if int(v) != 0 and ustY >= j:
+            if int(sb[j, i, 2]) != 0 and ustY >= j:
                 ustY = j
                 break
     for i in range(solX, sagX):
         for j in range(y-1, ustY, -1):
-            v = hsv[j, i, 2]
-            if int(v) != 0 and altY <= j:
+            if int(sb[j, i, 2]) != 0 and altY <= j:
                 altY = j
                 break
-    resim = orijinal[ustY: altY, solX: sagX]
-    #cv2.imwrite("temp/p2.jpg", resim)
-    ir2 = copy.copy(resim)
-    y, x, _ = resim.shape
-    solX = x
-    sagX = altY = 0
-    ustY = y
-    xBlur = int(x / 120)
-    yBlur = int(y / 90)
-    sbr = cv2.threshold(resim, 240, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
-    for i in range(0, y):
-        for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) == 255:
-                resim[i, j] = (0, 0, 0)
-    blur = cv2.blur(resim, (xBlur, yBlur))
-    sbr = siyahBeyazGonder(blur)
-    sbr = cv2.cvtColor(sbr,cv2.COLOR_GRAY2BGR)
-    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
-    for i in range(0, y):
-        for j in range(0, x):
-            v = hsv[i, j, 2]
-            if int(v) == 255 and solX >= j:
-                solX = j
-                break
-    for i in range(0, y):
-        for j in range(x - 1, solX, -1):
-            v = hsv[i, j, 2]
-            if int(v) == 255 and sagX <= j:
-                sagX = j
-                break
-    for i in range(solX, sagX):
-        for j in range(0, y):
-            v = hsv[j, i, 2]
-            if int(v) == 255 and ustY >= j:
-                ustY = j
-                break
-    for i in range(solX, sagX):
-        for j in range(y - 1, ustY, -1):
-            v = hsv[j, i, 2]
-            if int(v) == 255 and altY <= j:
-                altY = j
-                break
-    ir1 = sbr[ustY: altY, solX: sagX]
-    #ir2 = cv2.imread("temp/p2.jpg")
-    ir2 = ir2[ustY: altY, solX: sagX]
-    return ir1, ir2
+    return orijinal[ustY: altY, solX: sagX]   
 
-def akcigerBul(resim, orijinal):
-    y, x, _ = resim.shape
-    solX = x
-    sagX = 0
-    altY = 0
-    ustY = y
-    gY = gX = 0
-    xBlur = int(x / 5)
-    yBlur = int(y / 5)
-    hsv = cv2.cvtColor(resim, cv2.COLOR_BGR2HSV)
-    for i in range(y):
-        for j in range(x):
-            v = hsv[i, j, 2]
-            if int(v) == 0:
-                resim[i, j] = (255, 255, 255)
-            else:
-                break
-    for i in range(y):
-        for j in range(x - 1, 0, -1):
-            v = hsv[i, j, 2]
-            if int(v) == 0:
-                resim[i, j] = (255, 255, 255)
-            else:
-                break
-    for i in range(x):
-        for j in range(y):
-            v = hsv[j, i, 2]
-            if int(v) == 0:
-                resim[j, i] = (255, 255, 255)
-            else:
-                break
-    if x/y > 0.8 and x/y < 2: # Göğüs Filmi
-        for i in range(x):
-            for j in range(y - 1, 0, -1):
-                v = hsv[j, i, 2]
-                if int(v) == 0:
-                    resim[j, i] = (255, 255, 255)
-                else:
+def findLung(img):
+    lungFoundControl, lungCoordinates = findTemplate(img, "templates/fullLung/", 95)
+    if lungFoundControl:
+        lung = img[lungCoordinates[0][1]: lungCoordinates[1][1], lungCoordinates[0][0]: lungCoordinates[1][0]]
+        return lung, True
+
+    leftLungFoundControl, leftLungCoordinates = findTemplate(img, "templates/leftLung/", 95)
+    if leftLungFoundControl:
+        rightLungFoundControl, rightLungCoordinates = findTemplate(img, "templates/rightLung/", 95)
+        if rightLungFoundControl:
+            startX = leftLungCoordinates[0][0]
+            startY = min(leftLungCoordinates[0][1], rightLungCoordinates[0][1])
+            endX = rightLungCoordinates[1][0]
+            endY = max(leftLungCoordinates[1][1], rightLungCoordinates[1][1])
+            lung = img[startY: endY, startX: endX]
+            return lung, True
+
+    topLeftLungFoundControl, topLeftLungCoordinates = findTemplate(img, "templates/topLeftLung/", 95)
+    if topLeftLungFoundControl:
+        botLeftLungFoundControl, botLeftLungCoordinates = findTemplate(img, "templates/botLeftLung/", 95)
+        if botLeftLungFoundControl:
+            topRightLungFoundControl, topRightLungCoordinates = findTemplate(img, "templates/topRightLung/", 95)
+            if topRightLungFoundControl:
+                 botRightLungFoundControl, botRightLungCoordinates = findTemplate(img, "templates/botRightLung/", 95)
+                 if botRightLungFoundControl:
+                    startX = min(topLeftLungCoordinates[0][0], botLeftLungCoordinates[0][0])
+                    startY = min(topLeftLungCoordinates[0][1], topRightLungCoordinates[0][1])
+                    endX = max(topRightLungCoordinates[1][0], botRightLungCoordinates[1][0])
+                    endY = max(botLeftLungCoordinates[1][1], botRightLungCoordinates[1][1])
+                    lung = img[startY: endY, startX: endX]
+                    return lung, True                  
+    return img, False
+
+def findTemplate(img, templatesDirectoryPath, botAccuracy = 90):
+    bestLocations = ((),())
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imgX, imgY = imgRGB.shape[::-1]
+    templates = os.listdir(templatesDirectoryPath)
+    for templateName in templates:
+        template = cv2.imread(templatesDirectoryPath + templateName, 0)
+        templateX, templateY = template.shape[::-1]
+        indexOf_ = templateName.find('_')
+        indexOfX = templateName.find('x')
+        indexOfDot = templateName.find('.')
+        xDimensionOfOriginalImageOfTemplate = int(templateName[indexOf_ + 1:indexOfX])
+        yDimensionOfOriginalImageOfTemplate = int(templateName[indexOfX + 1:indexOfDot])
+        xCoefficient = imgX / xDimensionOfOriginalImageOfTemplate
+        yCoefficient = imgY / yDimensionOfOriginalImageOfTemplate
+        if xCoefficient < 0.9 or xCoefficient > 1.1 or yCoefficient < 0.9 or yCoefficient > 1.1:
+            templateX = int(templateX * xCoefficient)
+            templateY = int(templateY * yCoefficient)
+            template = cv2.resize(template, (templateX, templateY), interpolation = cv2.INTER_AREA)
+
+        res = cv2.matchTemplate(imgRGB, template, cv2.TM_CCOEFF_NORMED)
+        for accuracy in range (100, botAccuracy - 1, -1):
+            loc = np.where(res >= float(accuracy) / 100)
+            if len(loc[0]) > 0:
+                averageOfXDimensions = int(sum(loc[1]) / len(loc[1]))
+                averageOfYDimensions = int(sum(loc[0]) / len(loc[0]))
+                if abs(averageOfXDimensions - min(loc[1])) > (imgX * 5 / 100) or abs(averageOfYDimensions - min(loc[0])) > (imgY * 5 / 100):
                     break
-    blur = cv2.blur(resim, (xBlur, yBlur))
-    sbr = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY)[1]
-    hsv = cv2.cvtColor(sbr, cv2.COLOR_BGR2HSV)
-    for i in range(y):
-        for j in range(x):
-            v = hsv[i, j, 2]
-            if int(v) == 0 and solX >= j:
-                solX = j
+                botAccuracy = accuracy
+                bestLocations = loc
+                bestTemplateX = templateX
+                bestTemplateY = templateY
                 break
-    for i in range(y):
-        for j in range(x - 1, solX, -1):
-            v = hsv[i, j, 2]
-            if int(v) == 0 and sagX <= j:
-                sagX = j
-                break
-    for i in range(solX, sagX):
-        for j in range(0, y):
-            v = hsv[j, i, 2]
-            if int(v) == 0 and ustY >= j:
-                ustY = j
-                break
-    if x / y > 0.8 and x / y < 2:  # Göğüs Filmi
-        for i in range(solX, sagX):
-            for j in range(y - 1, ustY, -1):
-                v = hsv[j, i, 2]
-                if int(v) == 0 and altY <= j:
-                    altY = j
-                    break
-        for i in range(1, 3):
-            if ustY - (y * i / 100) > 0 and altY + (y * i / 100) < y - 1:
-                gY = i
-    else:  # Karın ve Göğüs Filmi
-        altY = int(ustY + ((sagX - solX) * 0.6))
-        for i in range(1, 10):
-            if ustY - (y * i / 100) > 0:
-                gY = i
-    for i in range(1, 3):
-        if solX - (x * i / 100) > 0 and sagX + (x * i / 100) < x - 1:
-            gX = i
-    ustY = int(ustY - (y * gY / 100))
-    altY = int(altY + (y * gY / 100))
-    solX = int(solX - (x * gX / 100))
-    sagX = int(sagX + (x * gX / 100))
-    kr = orijinal[ustY: altY, solX: sagX]
-    return kr
 
-def isleVeKaydet(dosyaYolu, uzunluk):
-    r1 = cv2.imread(dosyaYolu)
-    r2 = cv2.imread(dosyaYolu)
-    vr, orijinal = vucutBul(r1, r2)
-    ar = akcigerBul(vr, orijinal)
-    randomSayi = random.randint(1, 10000000)
-    dosyaYolu = "islenmisRontgenler/" + dosyaYolu[len("islenmisRontgenler/"):len(dosyaYolu) - uzunluk] + "-" + str(randomSayi) + ".jpg"
-    cv2.imwrite(dosyaYolu, ar)
+    if len(bestLocations[0]) > 0:
+        startX = min(bestLocations[1])
+        startY = min(bestLocations[0])
+        return True, ((startX, startY),(startX + bestTemplateX, startY + bestTemplateY))
 
-resimler = os.listdir("orijinalRontgenler")
-for resim in resimler:
-    idx = resim.find(".") + 1
-    if resim[idx:] == "jpg" or resim[idx:] == "jpeg" or resim[idx:] == "png":
-        dosyaYolu = "orijinalRontgenler/" + resim
-        isleVeKaydet(dosyaYolu, len(resim[idx:]) + 1)
+    return False, ((0, 0),(0, 0))
+
+def processAndSave(path, length):
+    img = cv2.imread(path)
+    body = findBody(img)
+    lung, condition = findLung(body)
+    if not condition:
+        return
+    randomNumber = random.randint(1, 10000000)
+    path = "islenmisRontgenler/" + path[len("islenmisRontgenler/"):len(path) - length] + "-" + str(randomNumber) + ".jpg"
+    cv2.imwrite(path, lung)
+
+imgs = os.listdir("orijinalRontgenler")
+for img in imgs:
+    idx = img.find(".") + 1
+    if img[idx:] == "jpg" or img[idx:] == "jpeg" or img[idx:] == "png":
+        path = "orijinalRontgenler/" + img
+        processAndSave(path, len(img[idx:]) + 1)
