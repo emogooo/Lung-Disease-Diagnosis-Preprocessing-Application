@@ -48,7 +48,7 @@ def findBody(img):
             if int(sb[j, i, 2]) != 0 and botY <= j:
                 botY = j
                 break
-    return original[topY: botY, leftX: rightX]   
+    return original[topY: botY, leftX: rightX]
 
 def findLung(img):
     lungFoundControl, lungCoordinates = findTemplate(img, "templates/fullLung/", 75)
