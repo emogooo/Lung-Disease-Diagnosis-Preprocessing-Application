@@ -22,12 +22,11 @@ def findBody(img):
         for j in range(0, x):
             if int(sbr[i, j, 2]) == 255:
                 img[i, j] = (0, 0, 0)
-    
+
     #logo ve yazılar siyaha boyandı
     sb = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY)[1]
     blur = cv2.blur(sb,(xBlur,yBlur))
-    sb = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)[1]
-
+    sb = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)[1]  
     for i in range(0, y):
         for j in range(0, x):
             if int(sb[i, j, 2]) != 0 and leftX >= j:
@@ -56,9 +55,9 @@ def findLung(img):
         lung = img[lungCoordinates[0][1]: lungCoordinates[1][1], lungCoordinates[0][0]: lungCoordinates[1][0]]
         return lung, True
 
-    leftLungFoundControl, leftLungCoordinates = findTemplate(img, "templates/leftLung/", 60)
+    leftLungFoundControl, leftLungCoordinates = findTemplate(img, "templates/leftLung/", 70)
     if leftLungFoundControl:
-        rightLungFoundControl, rightLungCoordinates = findTemplate(img, "templates/rightLung/", 60)
+        rightLungFoundControl, rightLungCoordinates = findTemplate(img, "templates/rightLung/", 70)
         if rightLungFoundControl:
             startX = leftLungCoordinates[0][0]
             startY = min(leftLungCoordinates[0][1], rightLungCoordinates[0][1])
@@ -67,13 +66,13 @@ def findLung(img):
             lung = img[startY: endY, startX: endX]
             return lung, True
 
-    topLeftLungFoundControl, topLeftLungCoordinates = findTemplate(img, "templates/topLeftLung/", 50)
+    topLeftLungFoundControl, topLeftLungCoordinates = findTemplate(img, "templates/topLeftLung/", 60)
     if topLeftLungFoundControl:
-        botLeftLungFoundControl, botLeftLungCoordinates = findTemplate(img, "templates/botLeftLung/", 50)
+        botLeftLungFoundControl, botLeftLungCoordinates = findTemplate(img, "templates/botLeftLung/", 60)
         if botLeftLungFoundControl:
-            topRightLungFoundControl, topRightLungCoordinates = findTemplate(img, "templates/topRightLung/", 50)
+            topRightLungFoundControl, topRightLungCoordinates = findTemplate(img, "templates/topRightLung/", 60)
             if topRightLungFoundControl:
-                 botRightLungFoundControl, botRightLungCoordinates = findTemplate(img, "templates/botRightLung/", 50)
+                 botRightLungFoundControl, botRightLungCoordinates = findTemplate(img, "templates/botRightLung/", 60)
                  if botRightLungFoundControl:
                     startX = min(topLeftLungCoordinates[0][0], botLeftLungCoordinates[0][0])
                     startY = min(topLeftLungCoordinates[0][1], topRightLungCoordinates[0][1])
