@@ -1,6 +1,6 @@
 # Gogus-Kafesi-Tespit-Programi
 Röntgen filminden akciğer kısmını kırpan, yapay zeka destekli zatürre teşhis projesinin veriseti hazırlama (preprocessing) uygulaması.
-
+# 16.09.2022 itibariyle aşağıda bulunan yöntem değiştirilmiştir.
 Algoritmaya verilen röntgen filmi:![d](https://user-images.githubusercontent.com/58745898/158307662-107506fb-edaa-4460-bc8d-b9fd581bce2e.jpg)
 
 Çalışma adımları kısa ve özetle şu şekildedir:
