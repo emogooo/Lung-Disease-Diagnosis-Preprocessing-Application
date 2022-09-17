@@ -1,4 +1,4 @@
-# Gogus-Kafesi-Tespit-Programi
+# Akciger-Tespit-Programi
 
 Röntgen filminden akciğer kısmını kırpan, yapay zeka destekli zatürre teşhis projesinin veriseti hazırlama (preprocessing) uygulaması.
 
