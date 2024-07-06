@@ -55,7 +55,7 @@ This project involves the development of a data preprocessing application for an
 ![HBody](https://user-images.githubusercontent.com/58745898/190645001-51eebf3c-822e-43a0-b3b6-bf192556750a.jpg)
 
 > [!NOTE]
-> The lung detection function operates in three stages. The first stage attempts to find the entire lung by matching it with templates. If a full lung match is not found, the process moves to the second stage. In this stage, the left and right lungs are searched for separately. If the left lung is found, the right lung is then searched for. If both are found, the images are framed from their furthest coordinates to obtain the result. However, if either the left or right lung, or both, cannot be found, the process moves to the third stage. This stage searches sequentially for the upper left, lower left, upper right, and lower right parts of the lung. If all four corners are found, a frame is created from the furthest coordinates to obtain the lung image.
+> The lung detection function operates in three stages. The first stage attempts to find the entire lung by matching it with templates. If a full lung match is not found, the process moves to the second stage. In this stage, the left and right lungs are searched for separately. If the left lung is found, the right lung is then searched for. If both are found, the images are framed from their furthest coordinates to obtain the result. However, if either the left or right lung, or both, cannot be found, the process moves to the third stage. This stage searches sequentially for the upper left, lower left, upper right, and lower right parts of the lung. If all four corners are found a frame is created from the furthest coordinates to obtain the lung image.
 
 ### 9. First Stage - Full Lung Matching
 
